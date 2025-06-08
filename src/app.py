@@ -15,6 +15,17 @@ st.title("MyFitnessPal Data Visualizer")
 # Session Reset
 if st.sidebar.button("Clear Stored Data"):
     st.session_state.clear()
+
+    # Delete uploaded CSVs if they exist
+    try:
+        if os.path.exists("data/nutrition_latest.csv"):
+            os.remove("data/nutrition_latest.csv")
+        if os.path.exists("data/weight_latest.csv"):
+            os.remove("data/weight_latest.csv")
+    except Exception as e:
+        st.error(f"Error clearing files: {e}")
+
+    st.success("Session state and saved files cleared.")
     st.rerun()
 
 # Tabs
@@ -26,7 +37,7 @@ with tab1:
 
     weight_file = "data/weight_latest.csv"
     if not os.path.exists(weight_file):
-        st.warning("No weight data found. Please upload from the Weight tab first.")
+        st.warning("No weight data found. Please upload from the Weight tab first, and refresh this page.")
     else:
         weight_df = pd.read_csv(weight_file)
         weight_df["Date"] = pd.to_datetime(weight_df["Date"])

@@ -10,11 +10,19 @@ def show_weight_tab():
     st.header("Weight Progress")
 
     uploaded_file = st.file_uploader("Upload your Weight CSV", type=["csv"], key="weight_upload")
+
     if uploaded_file:
         df = pd.read_csv(uploaded_file)
         os.makedirs("data", exist_ok=True)
         df.to_csv("data/weight_latest.csv", index=False)
         st.session_state["weight_df_raw"] = df
+        st.success("File uploaded and saved.")
+    elif os.path.exists("data/weight_latest.csv"):
+        df = pd.read_csv("data/weight_latest.csv")
+        st.session_state["weight_df_raw"] = df
+        st.info("Using previously saved weight data.")
+    else:
+        st.warning("Please upload a Weight CSV file to begin.")
 
     weight_df_raw = st.session_state.get("weight_df_raw")
     if weight_df_raw is None:

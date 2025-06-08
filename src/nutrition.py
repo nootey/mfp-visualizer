@@ -10,11 +10,19 @@ def show_nutrition_tab():
     st.header("Nutrition Summary")
 
     uploaded_file = st.file_uploader("Upload your Nutrition CSV", type=["csv"], key="nutrition_upload")
+
     if uploaded_file:
         df = pd.read_csv(uploaded_file)
         os.makedirs("data", exist_ok=True)
         df.to_csv("data/nutrition_latest.csv", index=False)
         st.session_state["nutrition_df_raw"] = df
+        st.success("File uploaded and saved.")
+    elif os.path.exists("data/nutrition_latest.csv"):
+        df = pd.read_csv("data/nutrition_latest.csv")
+        st.session_state["nutrition_df_raw"] = df
+        st.info("Using previously saved nutrition data.")
+    else:
+        st.warning("Please upload a Nutrition CSV file to begin.")
 
     df_raw = st.session_state.get("nutrition_df_raw")
     if df_raw is None:
