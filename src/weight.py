@@ -31,7 +31,7 @@ def show_weight_tab():
         weight_df["Display Weight"] = weight_df["Weight"]
 
     # Filter by date
-    weight_df = filter_date_range(weight_df)
+    weight_df = filter_date_range(weight_df, key_prefix="weight")
 
     if weight_df.empty:
         st.warning("No data in selected date range.")
