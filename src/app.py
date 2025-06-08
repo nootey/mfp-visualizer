@@ -28,15 +28,13 @@ with tab1:
     if not os.path.exists(weight_file):
         st.warning("No weight data found. Please upload from the Weight tab first.")
     else:
-        df = pd.read_csv(weight_file)
-        df["Date"] = pd.to_datetime(df["Date"])
-        df = df.sort_values("Date")
+        weight_df = pd.read_csv(weight_file)
+        weight_df["Date"] = pd.to_datetime(weight_df["Date"])
+        df = weight_df.sort_values("Date")
 
-        # Allow user to specify source and display units
         source_unit = st.selectbox("What unit is your weight data in?", options=["kg", "lb"], index=0, key="dashboard_source_unit")
         display_unit = st.selectbox("Display Weight In:", options=["kg", "lb"], index=0, key="dashboard_display_unit")
 
-        # Apply conversion logic
         if source_unit == display_unit:
             df["Display Weight"] = df["Weight"]
         elif source_unit == "lb" and display_unit == "kg":
@@ -77,6 +75,77 @@ with tab1:
 
         st.subheader("All Time")
         plot_trend(df, "All Time")
+
+        # === CORRELATION AND ENERGY ANALYSIS ===
+        st.subheader("Correlation Analysis: Nutrition vs Weight")
+
+        nutrition_file = "data/nutrition_latest.csv"
+        if not os.path.exists(nutrition_file):
+            st.warning("No nutrition data found. Please upload it via the Nutrition tab.")
+        else:
+            nutrition_df = pd.read_csv(nutrition_file)
+            nutrition_df["Date"] = pd.to_datetime(nutrition_df["Date"])
+
+            daily_nutrition = nutrition_df.groupby("Date").agg({
+                "Calories": "sum",
+                "Protein (g)": "sum",
+                "Carbohydrates (g)": "sum",
+                "Fat (g)": "sum"
+            }).reset_index()
+
+            merged_df = pd.merge(df[["Date", "Display Weight"]], daily_nutrition, on="Date", how="inner")
+
+            # === Lagged Calorie Correlation ===
+            st.markdown("""
+            ### Lagged Calorie Correlation
+            This section checks how calorie intake from **1–3 days ago** relates to your weight.  
+            Correlation ranges from **-1 (inverse)** to **+1 (direct)**.
+            """)
+
+            lagged_corr_df = merged_df.copy()
+            for lag in [1, 2, 3]:
+                lagged_corr_df[f"Calories_lag{lag}"] = lagged_corr_df["Calories"].shift(lag)
+
+            lag_corrs = {
+                f"Calories lag {lag} days": lagged_corr_df[[f"Calories_lag{lag}", "Display Weight"]].corr().iloc[0, 1]
+                for lag in [1, 2, 3]
+            }
+
+            lagged_corrs_df = pd.DataFrame.from_dict(
+                lag_corrs, orient="index", columns=["Correlation with Weight"]
+            ).rename_axis("Lag").round(3)
+            lagged_corrs_df["Units"] = "Unitless (−1 to 1)"
+            st.table(lagged_corrs_df)
+
+            # === Calories per kg Gained/Lost ===
+            st.markdown("""
+            ### Estimated Calories per kg Gained or Lost
+            This estimates how many kcal it took for your body to gain/lose 1 kg based on your calorie intake and weight data.
+            """)
+
+            start_date = merged_df["Date"].min()
+            end_date = merged_df["Date"].max()
+            weight_start = merged_df.loc[merged_df["Date"] == start_date, "Display Weight"].values[0]
+            weight_end = merged_df.loc[merged_df["Date"] == end_date, "Display Weight"].values[0]
+            weight_diff = weight_end - weight_start
+            total_days = (end_date - start_date).days + 1
+            avg_daily_cal = merged_df["Calories"].mean()
+
+            try:
+                estimated_tdee = avg_daily_cal - (weight_diff * 7700 / total_days)
+                net_calories = (avg_daily_cal - estimated_tdee) * total_days
+                kcal_per_kg = net_calories / weight_diff if weight_diff != 0 else None
+
+                st.metric("Net Weight Change", f"{weight_diff:.2f} kg")
+                st.metric("Avg Daily Calories", f"{avg_daily_cal:,.0f} kcal/day")
+                st.metric("Estimated TDEE", f"{estimated_tdee:,.0f} kcal/day")
+
+                if kcal_per_kg:
+                    st.metric("Calories per kg Gained/Lost", f"{abs(kcal_per_kg):,.0f} kcal/kg")
+                else:
+                    st.info("No net weight change detected. Cannot estimate kcal per kg.")
+            except Exception as e:
+                st.error(f"Error in estimation: {e}")
 
 # === NUTRITION TAB ===
 with tab2:
