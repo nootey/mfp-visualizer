@@ -40,12 +40,25 @@ def show_nutrition_tab():
             st.pyplot(fig)
             download_figure(fig, f"{col.replace(' ', '_').lower()}_hist.png")
 
-        st.subheader("Nutrient Correlation Heatmap")
-        heatmap_df = nutrition_df.select_dtypes(include=["float64", "int64"])
-        fig3, ax3 = plt.subplots(figsize=(10, 6))
-        sns.heatmap(heatmap_df.corr(), annot=True, fmt=".2f", cmap="coolwarm", ax=ax3)
-        ax3.set_title("Correlation Matrix")
-        st.pyplot(fig3)
-        download_figure(fig3, "correlation_heatmap.png")
+        # --- Summary Stats ---
+        st.subheader("Nutrition Summary")
+        days_logged = nutrition_df["Date"].nunique()
+        avg_cal = nutrition_df["Calories"].mean()
+        avg_protein = nutrition_df["Protein (g)"].mean()
+        avg_fat = nutrition_df["Fat (g)"].mean()
+        avg_carbs = nutrition_df["Carbohydrates (g)"].mean()
+
+        max_day = nutrition_df.loc[nutrition_df["Calories"].idxmax()]
+        min_day = nutrition_df.loc[nutrition_df["Calories"].idxmin()]
+
+        st.markdown(f"""
+        - **Days Logged:** {days_logged}
+        - **Average Calories/day:** {avg_cal:.0f} kcal
+        - **Average Protein:** {avg_protein:.1f} g
+        - **Average Fat:** {avg_fat:.1f} g
+        - **Average Carbs:** {avg_carbs:.1f} g
+        - **Highest Calorie Day:** {max_day['Date'].date()} – {max_day['Calories']} kcal
+        - **Lowest Calorie Day:** {min_day['Date'].date()} – {min_day['Calories']} kcal
+        """)
     else:
         st.info("Please upload a Nutrition CSV file to begin.")

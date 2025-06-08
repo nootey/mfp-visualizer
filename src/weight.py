@@ -34,5 +34,28 @@ def show_weight_tab():
         ax.set_xlabel("Date")
         st.pyplot(fig)
         download_figure(fig, "weight_over_time.png")
+
+        # --- Summary Stats ---
+        st.subheader("Weight Summary")
+        num_entries = len(weight_df)
+        start_date = weight_df["Date"].iloc[0].date()
+        end_date = weight_df["Date"].iloc[-1].date()
+        start_weight = weight_df["Display Weight"].iloc[0]
+        end_weight = weight_df["Display Weight"].iloc[-1]
+        delta = end_weight - start_weight
+        delta_str = f"{delta:+.1f} {weight_unit}"
+        arrow = "🔼" if delta > 0 else "🔽" if delta < 0 else "➡️"
+
+        days = (weight_df["Date"].iloc[-1] - weight_df["Date"].iloc[0]).days
+        rate = delta / days if days > 0 else 0
+
+        st.markdown(f"""
+          - **Entries Logged:** {num_entries}
+          - **Date Range:** {start_date} → {end_date}
+          - **Start Weight:** {start_weight:.1f} {weight_unit}
+          - **End Weight:** {end_weight:.1f} {weight_unit}
+          - **Change:** {arrow} {delta_str}
+          - **Avg Change/Day:** {rate:+.3f} {weight_unit}/day
+          """)
     else:
         st.info("Please upload a Weight CSV file to begin.")
