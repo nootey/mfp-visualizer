@@ -1,15 +1,14 @@
-import streamlit as st
-import pandas as pd
 from datetime import datetime, timedelta
+import pandas as pd
+import streamlit as st
 from io import BytesIO
-
+import matplotlib.pyplot as plt
 
 def download_figure(fig, filename="plot.png"):
     buf = BytesIO()
     fig.savefig(buf, format="png", bbox_inches='tight')
     st.download_button("Download Plot", data=buf.getvalue(), file_name=filename, mime="image/png")
     buf.close()
-
 
 def filter_date_range(df, date_column="Date"):
     df[date_column] = pd.to_datetime(df[date_column])
