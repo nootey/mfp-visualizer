@@ -2,13 +2,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
-from io import BytesIO
-
-def download_figure(fig, filename="nutrition_plot.png"):
-    buf = BytesIO()
-    fig.savefig(buf, format="png", bbox_inches='tight')
-    st.download_button("Download Plot", data=buf.getvalue(), file_name=filename, mime="image/png")
-    buf.close()
+from utils import download_figure, filter_date_range
 
 def show_nutrition_tab():
     st.header("Nutrition Summary")
@@ -20,8 +14,11 @@ def show_nutrition_tab():
     nutrition_df = st.session_state.get("nutrition_df")
 
     if nutrition_df is not None:
-        nutrition_df["Date"] = pd.to_datetime(nutrition_df["Date"])
-        nutrition_df = nutrition_df.sort_values("Date")
+        nutrition_df = filter_date_range(nutrition_df)
+
+        if nutrition_df.empty:
+            st.warning("No data in selected date range.")
+            return
 
         st.subheader("Daily Calorie Intake")
         fig1, ax1 = plt.subplots(figsize=(8, 4))
@@ -40,14 +37,12 @@ def show_nutrition_tab():
             st.pyplot(fig)
             download_figure(fig, f"{col.replace(' ', '_').lower()}_hist.png")
 
-        # --- Summary Stats ---
         st.subheader("Nutrition Summary")
         days_logged = nutrition_df["Date"].nunique()
         avg_cal = nutrition_df["Calories"].mean()
         avg_protein = nutrition_df["Protein (g)"].mean()
         avg_fat = nutrition_df["Fat (g)"].mean()
         avg_carbs = nutrition_df["Carbohydrates (g)"].mean()
-
         max_day = nutrition_df.loc[nutrition_df["Calories"].idxmax()]
         min_day = nutrition_df.loc[nutrition_df["Calories"].idxmin()]
 
