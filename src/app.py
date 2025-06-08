@@ -8,7 +8,7 @@ st.title("MyFitnessPal Data Visualizer")
 # Session Reset
 if st.sidebar.button("Clear Stored Data"):
     st.session_state.clear()
-    st.experimental_rerun()
+    st.rerun()
 
 # Tabs
 tab1, tab2 = st.tabs(["Nutrition Summary", "Weight Tracking"])
