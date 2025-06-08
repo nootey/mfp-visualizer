@@ -1,6 +1,5 @@
 # mfp-visualizer
 
-# 📊 MyFitnessPal Data Visualizer
 An analytics dashboard for exploring and understanding your health data exported from MyFitnessPal. 
 View trends, analyze macro distributions, track your weight progress, and correlate calorie intake with body changes.
 
@@ -21,7 +20,7 @@ View trends, analyze macro distributions, track your weight progress, and correl
 - Ensure dependencies are installed: `pip install -r requirements/common.txt`
 - Run the app: `python run.py` or directly: `streamlit run src/app.py`
 
-## 🚀Features
+## Features
 - Daily, Weekly, Monthly Summaries 
 - Downloadable Graphs and automatic file retention
 - Date Range Filters with intelligent presets (e.g. “Last 2 Weeks”, “This Year”)
