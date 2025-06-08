@@ -1,3 +1,5 @@
+import os
+
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -9,7 +11,10 @@ def show_weight_tab():
 
     uploaded_file = st.file_uploader("Upload your Weight CSV", type=["csv"], key="weight_upload")
     if uploaded_file:
-        st.session_state["weight_df_raw"] = pd.read_csv(uploaded_file)
+        df = pd.read_csv(uploaded_file)
+        os.makedirs("data", exist_ok=True)
+        df.to_csv("data/weight_latest.csv", index=False)
+        st.session_state["weight_df_raw"] = df
 
     weight_df_raw = st.session_state.get("weight_df_raw")
     if weight_df_raw is None:

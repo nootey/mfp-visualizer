@@ -1,3 +1,5 @@
+import os
+
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -9,7 +11,10 @@ def show_nutrition_tab():
 
     uploaded_file = st.file_uploader("Upload your Nutrition CSV", type=["csv"], key="nutrition_upload")
     if uploaded_file:
-        st.session_state["nutrition_df_raw"] = pd.read_csv(uploaded_file)
+        df = pd.read_csv(uploaded_file)
+        os.makedirs("data", exist_ok=True)
+        df.to_csv("data/nutrition_latest.csv", index=False)
+        st.session_state["nutrition_df_raw"] = df
 
     df_raw = st.session_state.get("nutrition_df_raw")
     if df_raw is None:
